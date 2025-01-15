@@ -1,0 +1,11 @@
+[project]
+name = "ws"
+version = "0.0.1"
+description = "A Tmux workspace creator"
+readme = "README.md"
+dependencies = [
+    "click",
+]
+
+[project.scripts]
+ws = "ws.ws:cli"
