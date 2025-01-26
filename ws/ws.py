@@ -5,7 +5,6 @@ from pathlib import Path
 
 @click.group()
 def cli():
-    """Workspace CLI"""
     pass
 
 @cli.command()
@@ -17,23 +16,13 @@ def list():
         tmuxp_file = tmuxp_dir / f"{selection}.yaml"
         subprocess.run(["tmuxp", "load", "-y", str(tmuxp_file)])
 
-
 @cli.command()
 @click.argument('name', type=click.STRING)
 @click.argument('location_dir', type=click.Path(exists=True))
 def create(name, location_dir):
-    """
-    Create a new workspace.
-
-    Args:
-        name (str): The name of the workspace.
-        location_dir (Path): The directory where the workspace will be created.
-    """
-    # Ensure the directory exists
     if not os.path.exists(location_dir):
         raise click.ClickException(f"The directory '{location_dir}' does not exist.")
 
-    # Create the workspace
     workspace_path = Path(location_dir) / name
     if not workspace_path.exists():
         workspace_path.mkdir()
@@ -61,7 +50,7 @@ def remove(name):
     config_file_path = f"{user_home}/.config/tmuxp/{name}.yaml"
     if Path(config_file_path).exists():
         os.remove(config_file_path)
-        print(f"Workspace '{name}' removed.")
+        print(f"Worwskspace '{name}' removed.")
     else:
         print(f"Workspace '{name}' does not exist.")
 
