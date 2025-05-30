@@ -8,7 +8,7 @@ def cli():
     pass
 
 @cli.command()
-def list():
+def ls():
     tmuxp_dir = Path(os.path.expanduser('~'), ".config/tmuxp")
     cmd = f"ls {tmuxp_dir} | sed 's/\.yaml$//' | fzf"
     selection = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8').strip()
@@ -19,7 +19,8 @@ def list():
 @cli.command()
 @click.argument('name', type=click.STRING)
 @click.argument('location_dir', type=click.Path(exists=True))
-def create(name, location_dir):
+@click.option('--venv', is_flag=True, help='Activate a virtual environment named .venv in the workspace directory.')
+def create(name, location_dir, venv):
     if not os.path.exists(location_dir):
         raise click.ClickException(f"The directory '{location_dir}' does not exist.")
 
@@ -28,15 +29,37 @@ def create(name, location_dir):
         workspace_path.mkdir()
 
     user_home = os.path.expanduser("~")
-    with open(f"{user_home}/.config/tmuxp/" + name + ".yaml", "w") as f:
-        f.write(f"""start_directory: {location_dir}/{name}
+    tmuxp_config_path = Path(user_home) / ".config/tmuxp" / f"{name}.yaml"
+
+    tmuxp_content = f"""start_directory: {location_dir}/{name}
 session_name: {name}
 windows:
-  - window_name: terminal
   - window_name: editor
-""")
+    focus: true
+  - window_name: terminal
+"""
+
+    if venv:
+        venv_activate_command = ".venv/bin/activate"
+        tmuxp_content = f"""start_directory: {location_dir}/{name}
+session_name: {name}
+shell_command_before:
+- >
+  [[ -e '{venv_activate_command}' ]] && source {venv_activate_command}
+- reset
+windows:
+  - window_name: editor
+    focus: true
+  - window_name: terminal
+"""
+
+    with open(tmuxp_config_path, "w") as f:
+        f.write(tmuxp_content)
 
     print(f"Workspace '{name}' created at: {location_dir}")
+    if venv:
+        print(f"Virtual environment activation (source .venv/bin/activate) will be attempted on workspace load.")
+
 
 @cli.command()
 @click.argument('name', type=click.STRING)
