@@ -10,7 +10,7 @@ def cli():
 @cli.command()
 def ls():
     tmuxp_dir = Path(os.path.expanduser('~'), ".config/tmuxp")
-    cmd = f"ls {tmuxp_dir} | sed 's/\.yaml$//' | fzf"
+    cmd = fr"ls {tmuxp_dir} | sed 's/\.yaml$//' | fzf"
     selection = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8').strip()
     if selection:
         tmuxp_file = tmuxp_dir / f"{selection}.yaml"
