@@ -18,20 +18,22 @@ def ls():
 
 @cli.command()
 @click.argument('name', type=click.STRING)
-@click.argument('location_dir', type=click.Path(exists=True))
+@click.argument('location_dir', default=os.getcwd(), type=click.Path(exists=True))
 @click.option('--venv', is_flag=True, help='Activate a virtual environment named .venv in the workspace directory.')
 def create(name, location_dir, venv):
-    if not os.path.exists(location_dir):
-        raise click.ClickException(f"The directory '{location_dir}' does not exist.")
+    curdir = location_dir # if location_dir else os.getcwd()
 
-    workspace_path = Path(location_dir) / name
+    if not os.path.exists(curdir):
+        raise click.ClickException(f"The directory '{curdir}' does not exist.")
+
+    workspace_path = Path(curdir) / name
     if not workspace_path.exists():
         workspace_path.mkdir()
 
     user_home = os.path.expanduser("~")
     tmuxp_config_path = Path(user_home) / ".config/tmuxp" / f"{name}.yaml"
 
-    tmuxp_content = f"""start_directory: {location_dir}/{name}
+    tmuxp_content = f"""start_directory: {curdir}/{name}
 session_name: {name}
 windows:
   - window_name: editor
@@ -41,7 +43,7 @@ windows:
 
     if venv:
         venv_activate_command = ".venv/bin/activate"
-        tmuxp_content = f"""start_directory: {location_dir}/{name}
+        tmuxp_content = f"""start_directory: {curdir}/{name}
 session_name: {name}
 shell_command_before:
 - >
@@ -56,7 +58,7 @@ windows:
     with open(tmuxp_config_path, "w") as f:
         f.write(tmuxp_content)
 
-    print(f"Workspace '{name}' created at: {location_dir}")
+    print(f"Workspace '{name}' created at: {curdir}")
     if venv:
         print(f"Virtual environment activation (source .venv/bin/activate) will be attempted on workspace load.")
 
